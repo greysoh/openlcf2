@@ -76,7 +76,7 @@ async function findCopyFiles(version, isIchor) {
   return data.join(isIchor ? "," : ";");
 }
 
-export async function loadLunarCommand(version, jreArgs, lunarArgs, root) {
+export async function loadLunarCommand(version, jreArgs, lunarArgs, rootDir) {
   let cmd = "";
   const jre = await findJRE();
 
@@ -93,6 +93,7 @@ export async function loadLunarCommand(version, jreArgs, lunarArgs, root) {
   cmd += `${jre} --add-modules jdk.naming.dns --add-exports jdk.naming.dns/com.sun.jndi.dns=java.naming`;
   cmd += ` -Djna.boot.library.path=${nativesDir}`;
   cmd += ` -Dlog4j2.formatMsgNoLookups=true`; // Disable lookups for log4j so that computer no go boom
+  cmd += 
   cmd += ` --add-opens java.base/java.io=ALL-UNNAMED${
     jreArgs ? " " + jreArgs : ""
   }`;
@@ -102,7 +103,7 @@ export async function loadLunarCommand(version, jreArgs, lunarArgs, root) {
   cmd += ` ${await findCopyFiles(version)} com.moonsworth.lunar.genesis.Genesis`;
   cmd += ` --version ${version}`;
   cmd += ` --accessToken 0 --assetIndex ${version} --userProperties {} --gameDir`;
-  cmd += ` ${root ? root : Deno.build.os == "windows" ? await joinPath(dir("home"), "AppData", "Roaming", ".minecraft") : await joinPath(dir("home"), ".minecraft")}`;
+  cmd += ` ${rootDir ? rootDir : Deno.build.os == "windows" ? await joinPath(dir("home"), "AppData", "Roaming", ".minecraft") : await joinPath(dir("home"), ".minecraft")}`;
   cmd += ` --texturesDir ${await joinPath(dir("home"), ".lunarclient", "textures")}`;
   cmd += ` --ichorClassPath ${await findCopyFiles(version, true)}`;
   cmd += ` --ichorExternalFiles OptiFine-${version.split(".")[0]}.${version.split(".")[1]}.jar`

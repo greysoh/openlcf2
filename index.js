@@ -7,7 +7,7 @@ const version = config.version ? config.version : Deno.args[0] ? Deno.args[0] : 
 
 if (version instanceof Error) throw version;
 
-const jreArgs = config.jreArgs ? config.jreArgs : null;
+const jreArgs = config.jreArgs ? config.jreArgs : config.jreOptimize ? " -XX:+UnlockExperimentalVMOptions -XX:+UseShenandoahGC -XX:+AlwaysPreTouch -XX:+DisableExplicitGC " : null;
 const lunarArgs = config.lunarArgs ? config.lunarArgs : `--width ${config.width ? config.width : 1280} --height ${config.height ? config.height : 720}`;
 const rootDir = config.rootDir ? config.rootDir : null;
 
