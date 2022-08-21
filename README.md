@@ -1,5 +1,5 @@
 # OpenLCF2
-Open-source Lunar Client launcher, based on Deno
+Open-source Lunar Client launcher, written on Deno
 ## Building/Running paremeters
 This application needs these paramaters: `--allow-read --allow-env --allow-run`
 ### Building
