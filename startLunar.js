@@ -31,8 +31,7 @@ async function findJRE() {
   }
 }
 
-async function findCopyFiles(version, shouldFormatLulz) {
-  const wrap = (str) => shouldFormatLulz ? str : str; // FIXME: Remove this.
+async function findCopyFiles(version, isIchor) {
   const data = [];
 
   const multiverRoot = await joinPath(
@@ -58,23 +57,23 @@ async function findCopyFiles(version, shouldFormatLulz) {
         multiverData.name.startsWith("common-") || multiverData.name.startsWith("genesis")) &&
       multiverData.name.endsWith(".jar")
     ) {
-      data.push(wrap(await joinPath(multiverRoot, multiverData.name)));
+      data.push(await joinPath(multiverRoot, multiverData.name));
     } else if (multiverData.name.toLowerCase().startsWith("optifine") && multiverData.name.endsWith(".jar")) {
       const verData = multiverData.name.startsWith("OptiFine") ? multiverData.name.split("v")[1].split(".")[0].replaceAll("_", ".") : version;
 
       if (verData.startsWith(version)) {
-        data.push(wrap(await joinPath(multiverRoot, multiverData.name)));
+        data.push(await joinPath(multiverRoot, multiverData.name));
       }
     } else if (multiverData.name.startsWith("v") && multiverData.name.endsWith(".jar")) {
       const verData = multiverData.name.split("v")[1].split("-")[0].replaceAll("_", ".");
 
       if (verData.startsWith(version)) {
-        data.push(wrap(await joinPath(multiverRoot, multiverData.name)));
+        data.push(await joinPath(multiverRoot, multiverData.name));
       }
     }
   }
 
-  return data.join(shouldFormatLulz ? "," : ";");
+  return data.join(isIchor ? "," : ";");
 }
 
 export async function loadLunarCommand(version, jreArgs, lunarArgs) {
@@ -105,8 +104,6 @@ export async function loadLunarCommand(version, jreArgs, lunarArgs) {
   cmd += ` --accessToken 0 --assetIndex ${version} --userProperties {} --gameDir`;
   cmd += ` ${Deno.build.os == "windows" ? await joinPath(dir("home"), "AppData", "Roaming", ".minecraft") : await joinPath(dir("home"), ".minecraft")}`;
   cmd += ` --texturesDir ${await joinPath(dir("home"), ".lunarclient", "textures")}`;
-  // FIXME: Isn't this redundant?
-
   cmd += ` --ichorClassPath ${await findCopyFiles(version, true)}`;
   cmd += ` --ichorExternalFiles OptiFine-${version.split(".")[0]}.${version.split(".")[1]}.jar`
   cmd += ` --workingDirectory`;
