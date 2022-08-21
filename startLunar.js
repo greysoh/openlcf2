@@ -52,7 +52,7 @@ async function findCopyFiles(version, isIchor) {
     }
 
     if (
-      (multiverData.name == "lunar" ||
+      (multiverData.name.startsWith("lunar") ||
         multiverData.name.startsWith("lunar-") ||
         multiverData.name.startsWith("common-") || multiverData.name.startsWith("genesis")) &&
       multiverData.name.endsWith(".jar")
@@ -61,13 +61,13 @@ async function findCopyFiles(version, isIchor) {
     } else if (multiverData.name.toLowerCase().startsWith("optifine") && multiverData.name.endsWith(".jar")) {
       const verData = multiverData.name.startsWith("OptiFine") ? multiverData.name.split("v")[1].split(".")[0].replaceAll("_", ".") : version;
 
-      if (verData.startsWith(version)) {
+      if (version.startsWith(verData)) {
         data.push(await joinPath(multiverRoot, multiverData.name));
       }
     } else if (multiverData.name.startsWith("v") && multiverData.name.endsWith(".jar")) {
       const verData = multiverData.name.split("v")[1].split("-")[0].replaceAll("_", ".");
 
-      if (verData.startsWith(version)) {
+      if (version.startsWith(verData)) {
         data.push(await joinPath(multiverRoot, multiverData.name));
       }
     }
@@ -106,9 +106,7 @@ export async function loadLunarCommand(version, jreArgs, lunarArgs) {
   cmd += ` --texturesDir ${await joinPath(dir("home"), ".lunarclient", "textures")}`;
   cmd += ` --ichorClassPath ${await findCopyFiles(version, true)}`;
   cmd += ` --ichorExternalFiles OptiFine-${version.split(".")[0]}.${version.split(".")[1]}.jar`
-  cmd += ` --workingDirectory`;
-  cmd += ` ${Deno.build.os == "windows" ? await joinPath(dir("home"), "AppData", "Roaming", ".minecraft") : await joinPath(dir("home"), ".minecraft")}`;
-  cmd += ` --classpathDir ${nativesDir}`;
+  cmd += ` --workingDirectory . --classpathDir ${nativesDir}`;
   cmd += lunarArgs ? " " + lunarArgs : "";
   
   return cmd;
