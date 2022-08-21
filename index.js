@@ -9,8 +9,9 @@ if (version instanceof Error) throw version;
 
 const jreArgs = config.jreArgs ? config.jreArgs : null;
 const lunarArgs = config.lunarArgs ? config.lunarArgs : `--width ${config.width ? config.width : 1280} --height ${config.height ? config.height : 720}`;
+const rootDir = config.rootDir ? config.rootDir : null;
 
-const cmd = await loadLunarCommand(version, jreArgs, lunarArgs);
+const cmd = await loadLunarCommand(version, jreArgs, lunarArgs, rootDir);
 
 console.log("INFO: Starting Lunar...");
 await runShell(cmd);

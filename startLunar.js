@@ -76,7 +76,7 @@ async function findCopyFiles(version, isIchor) {
   return data.join(isIchor ? "," : ";");
 }
 
-export async function loadLunarCommand(version, jreArgs, lunarArgs) {
+export async function loadLunarCommand(version, jreArgs, lunarArgs, root) {
   let cmd = "";
   const jre = await findJRE();
 
@@ -102,7 +102,7 @@ export async function loadLunarCommand(version, jreArgs, lunarArgs) {
   cmd += ` ${await findCopyFiles(version)} com.moonsworth.lunar.genesis.Genesis`;
   cmd += ` --version ${version}`;
   cmd += ` --accessToken 0 --assetIndex ${version} --userProperties {} --gameDir`;
-  cmd += ` ${Deno.build.os == "windows" ? await joinPath(dir("home"), "AppData", "Roaming", ".minecraft") : await joinPath(dir("home"), ".minecraft")}`;
+  cmd += ` ${root ? root : Deno.build.os == "windows" ? await joinPath(dir("home"), "AppData", "Roaming", ".minecraft") : await joinPath(dir("home"), ".minecraft")}`;
   cmd += ` --texturesDir ${await joinPath(dir("home"), ".lunarclient", "textures")}`;
   cmd += ` --ichorClassPath ${await findCopyFiles(version, true)}`;
   cmd += ` --ichorExternalFiles OptiFine-${version.split(".")[0]}.${version.split(".")[1]}.jar`
