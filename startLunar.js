@@ -80,8 +80,6 @@ export async function loadLunarCommand(version, jreArgs, lunarArgs, rootDir) {
   let cmd = "";
   const jre = await findJRE();
 
-  console.log("INFO: JRE found at '%s'", jre);
-
   const nativesDir = await joinPath(
     dir("home"),
     ".lunarclient",
