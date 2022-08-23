@@ -6,20 +6,10 @@ async function findJRE() {
 
   for await (const dirEntry of Deno.readDir(lunarDir)) {
     if (!dirEntry.isDirectory) continue;
-    if (dirEntry.isSymlink) {
-      console.warn("WARN: JRE is a symlink. Continuing...");
-      continue;
-    }
-
     const dir = await joinPath(lunarDir, dirEntry.name);
 
     for await (const zulu of Deno.readDir(dir)) {
       if (!zulu.isDirectory) continue;
-      if (zulu.isSymlink) {
-        console.warn("WARN: JRE is a symlink. Continuing...");
-        continue;
-      }
-
       const zuluDir = await joinPath(dir, zulu.name);
 
       return await joinPath(
@@ -43,13 +33,6 @@ async function findCopyFiles(version, isIchor) {
 
   for await (const multiverData of Deno.readDir(multiverRoot)) {
     if (multiverData.isDirectory) continue;
-    if (multiverData.isSymlink) {
-      console.warn(
-        "WARN: Multiver data '%s' is a symlink. Continuing...",
-        multiverData.name
-      );
-      continue;
-    }
 
     if (
       (multiverData.name.startsWith("lunar") ||
