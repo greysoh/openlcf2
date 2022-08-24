@@ -69,28 +69,30 @@ async function findCopyFiles(version, lunarPath, isIchor) {
 /**
  * Gets the command to load Lunar Client.
  * @param {float} version Minecraft version to use
- * @param {string} rootDir Folder to start Minecraft in 
- * @param {string} lunarDir Lunar client path
  * @param {boolean} enableUnsupportedModifications Allows injection for stuff like solar tweaks, etc.
- * You must use said modification's launcher to configure it, however.
- * @param {string} jreArgs JVM arguments for lunar
- * @param {string} lunarArgs Lunar command line arguments
+ * @param {object} dir Directories to use ({root: "", lunar: ""})
+ * @param {object} args Command line arguments to use ({jvm: "", lunar: ""}
  * @returns {string} Command to execute to run Lunar Client
  */
 export async function loadLunarCommand(
   version,
-  rootDir,
-  lunarDir,
   enableUnsupportedModifications,
-  jreArgs,
-  lunarArgs
+  dir,
+  args
 ) {
+  const lunarDir = dir.lunar;
+  const rootDir = dir.root;
+
+  const jreArgs = args.jvm;
+  const lunarArgs = args.lunar;
+
   console.log(
     "version: %s, rootDir: %s, lunarDir: %s",
     version,
     rootDir,
     lunarDir
   );
+
   let cmd = "";
   const jre = await findJRE(lunarDir);
 
@@ -117,8 +119,7 @@ export async function loadLunarCommand(
   cmd += ` ${await findCopyFiles(
     version,
     lunarDir,
-    false,
-    enableUnsupportedModifications
+    false
   )} com.moonsworth.lunar.genesis.Genesis`;
   cmd += ` --version ${version}`;
   cmd += ` --accessToken 0 --assetIndex ${version} --userProperties {} --gameDir`;
@@ -130,7 +131,7 @@ export async function loadLunarCommand(
       : await joinPath(dir("home"), ".minecraft")
   }`;
   cmd += ` --texturesDir ${await joinPath(lunarDir, "textures")}`;
-  cmd += ` --ichorClassPath ${await findCopyFiles(version, lunarDir, enableUnsupportedModifications, true)}`;
+  cmd += ` --ichorClassPath ${await findCopyFiles(version, lunarDir, true)}`;
   cmd += ` --ichorExternalFiles OptiFine-${version.split(".")[0]}.${
     version.split(".")[1]
   }.jar`;

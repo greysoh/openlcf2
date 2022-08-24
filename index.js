@@ -55,7 +55,11 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
     default: lunarPath,
   });
 
-  enableBlacklistedMods = await Confirm.prompt(`Should I enable mods like Solar Tweaks? (currently set to '${localConfig.enableBlacklistedMods ? "Yes" : "No"}')`);
+  enableBlacklistedMods = await Confirm.prompt(
+    `Should I enable mods like Solar Tweaks? (currently set to '${
+      localConfig.enableBlacklistedMods ? "Yes" : "No"
+    }')`
+  );
 
   if (server != localConfig.serverIP) {
     let config = localConfig; // Is let needed?
@@ -63,10 +67,10 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
 
     await Deno.writeTextFile("config.json", JSON.stringify(config, null, 2));
   }
-
+  
   if (enableBlacklistedMods != localConfig.enableBlacklistedMods) {
     let config = localConfig; // Is let needed?
-    config.serverIP = server;
+    config.enableBlacklistedMods = enableBlacklistedMods;
 
     await Deno.writeTextFile("config.json", JSON.stringify(config, null, 2));
   }
@@ -80,13 +84,14 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
 
   const lunarCmd = await loadLunarCommand(
     version,
-    lunarConfig.launchDirectory,
-    lunarPath,
     enableBlacklistedMods,
-    "",
-    `--width ${lunarConfig.resolution.width} --height ${
-      lunarConfig.resolution.height
-    } ${server != "None" ? `--server "${server}"` : ""}`
+    { root: lunarConfig.launchDirectory, lunar: lunarPath },
+    {
+      jvm: "",
+      lunar: `--width ${lunarConfig.resolution.width} --height ${
+        lunarConfig.resolution.height
+      } ${server != "None" ? `--server "${server}"` : ""}`,
+    }
   );
 
   await runShell(lunarCmd);
@@ -95,17 +100,23 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
 
   const lunarCmd = await loadLunarCommand(
     lunarConfig.selectedSubversion,
-    lunarConfig.launchDirectory,
-    localConfig.customLunarPath
-      ? localConfig.customLunarPath
-      : await joinPath(dir("home"), ".lunarclient"),
     localConfig.enableBlacklistedMods,
-    "",
-    `--width ${lunarConfig.resolution.width} --height ${
-      lunarConfig.resolution.height
-    } ${
-      localConfig.serverIP != "None" ? `--server "${localConfig.serverIP}"` : ""
-    }`
+    {
+      root: lunarConfig.launchDirectory,
+      lunar: localConfig.customLunarPath
+        ? localConfig.customLunarPath
+        : await joinPath(dir("home"), ".lunarclient"),
+    },
+    {
+      jvm: "",
+      lunar: `--width ${lunarConfig.resolution.width} --height ${
+        lunarConfig.resolution.height
+      } ${
+        localConfig.serverIP != "None"
+          ? `--server "${localConfig.serverIP}"`
+          : ""
+      }`,
+    }
   );
 
   await runShell(lunarCmd);
