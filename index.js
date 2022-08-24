@@ -34,19 +34,19 @@ if (!existsSync("config.json")) {
 const localConfig = JSON.parse(await Deno.readTextFile("config.json"));
 
 if (await Confirm.prompt("Would you like to modify your selected options?")) {
-  let version, server;
+  let version, server, enableBlacklistedMods;
   const lunarPathDefault = localConfig.customLunarPath
     ? localConfig.customLunarPath
     : await joinPath(dir("home"), ".lunarclient"); // Jank is my middle name
   let lunarPath = lunarPathDefault;
 
   version = await Input.prompt({
-    message: "Select your version",
+    message: "What version should I use?",
     default: lunarConfig.selectedSubversion,
   });
 
   server = await Input.prompt({
-    message: "Input a server IP to join",
+    message: "What server IP should I join?",
     default: localConfig.serverIP,
   });
 
@@ -55,7 +55,16 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
     default: lunarPath,
   });
 
+  enableBlacklistedMods = await Confirm.prompt(`Should I enable mods like Solar Tweaks? (currently set to '${localConfig.enableBlacklistedMods ? "Yes" : "No"}')`);
+
   if (server != localConfig.serverIP) {
+    let config = localConfig; // Is let needed?
+    config.serverIP = server;
+
+    await Deno.writeTextFile("config.json", JSON.stringify(config, null, 2));
+  }
+
+  if (enableBlacklistedMods != localConfig.enableBlacklistedMods) {
     let config = localConfig; // Is let needed?
     config.serverIP = server;
 
@@ -73,11 +82,13 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
     version,
     lunarConfig.launchDirectory,
     lunarPath,
+    enableBlacklistedMods,
     "",
     `--width ${lunarConfig.resolution.width} --height ${
       lunarConfig.resolution.height
     } ${server != "None" ? `--server "${server}"` : ""}`
   );
+
   await runShell(lunarCmd);
 } else {
   console.log("Starting Lunar...");
@@ -88,6 +99,7 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
     localConfig.customLunarPath
       ? localConfig.customLunarPath
       : await joinPath(dir("home"), ".lunarclient"),
+    localConfig.enableBlacklistedMods,
     "",
     `--width ${lunarConfig.resolution.width} --height ${
       lunarConfig.resolution.height
@@ -95,5 +107,6 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
       localConfig.serverIP != "None" ? `--server "${localConfig.serverIP}"` : ""
     }`
   );
+
   await runShell(lunarCmd);
 }

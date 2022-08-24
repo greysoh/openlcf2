@@ -1,5 +1,6 @@
 import dir from "https://deno.land/x/dir/mod.ts";
 import { joinPath } from "./libs/join.js";
+import { existsSync } from "https://deno.land/std@0.152.0/fs/mod.ts";
 
 async function findJRE(lunarPath) {
   const lunarDir = await joinPath(lunarPath, "jre");
@@ -65,10 +66,22 @@ async function findCopyFiles(version, lunarPath, isIchor) {
   return data.join(isIchor ? "," : ";");
 }
 
+/**
+ * Gets the command to load Lunar Client.
+ * @param {float} version Minecraft version to use
+ * @param {string} rootDir Folder to start Minecraft in 
+ * @param {string} lunarDir Lunar client path
+ * @param {boolean} enableUnsupportedModifications Allows injection for stuff like solar tweaks, etc.
+ * You must use said modification's launcher to configure it, however.
+ * @param {string} jreArgs JVM arguments for lunar
+ * @param {string} lunarArgs Lunar command line arguments
+ * @returns {string} Command to execute to run Lunar Client
+ */
 export async function loadLunarCommand(
   version,
   rootDir,
   lunarDir,
+  enableUnsupportedModifications,
   jreArgs,
   lunarArgs
 ) {
@@ -90,11 +103,22 @@ export async function loadLunarCommand(
     jreArgs ? " " + jreArgs : ""
   }`;
   cmd += ` -Djava.library.path=${nativesDir}`;
+
+  if (enableUnsupportedModifications) {
+    const solarConf = await joinPath(lunarDir, "solartweaks", "config.json");
+    const solarJar = await joinPath(lunarDir, "solartweaks", "solar-patcher.jar");
+
+    if (existsSync(solarConf) && existsSync(solarJar)) {
+       cmd += ` -javaagent:${solarJar}=${solarConf}`
+    }
+  }
   cmd += ` -XX:+DisableAttachMechanism -cp`;
 
   cmd += ` ${await findCopyFiles(
     version,
-    lunarDir
+    lunarDir,
+    false,
+    enableUnsupportedModifications
   )} com.moonsworth.lunar.genesis.Genesis`;
   cmd += ` --version ${version}`;
   cmd += ` --accessToken 0 --assetIndex ${version} --userProperties {} --gameDir`;
@@ -106,7 +130,7 @@ export async function loadLunarCommand(
       : await joinPath(dir("home"), ".minecraft")
   }`;
   cmd += ` --texturesDir ${await joinPath(lunarDir, "textures")}`;
-  cmd += ` --ichorClassPath ${await findCopyFiles(version, lunarDir, true)}`;
+  cmd += ` --ichorClassPath ${await findCopyFiles(version, lunarDir, enableUnsupportedModifications, true)}`;
   cmd += ` --ichorExternalFiles OptiFine-${version.split(".")[0]}.${
     version.split(".")[1]
   }.jar`;
