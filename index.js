@@ -24,6 +24,8 @@ const localConfig = JSON.parse(await Deno.readTextFile("config.json"));
 
 if (await Confirm.prompt("Would you like to modify your selected options?")) {
   let version, server;
+  const lunarPathDefault = localConfig.customLunarPath ? localConfig.customLunarPath : await joinPath(dir("home"), ".lunarclient"); // Jank is my middle name
+  let lunarPath = lunarPathDefault;
 
   version = await Input.prompt({
     message: "Select your version",
@@ -35,6 +37,11 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
     default: localConfig.serverIP
   });
 
+  lunarPath = await Input.prompt({
+    message: "Where is Lunar Client located?",
+    default: lunarPath
+  })
+
   if (server != localConfig.serverIP) {
     let config = localConfig; // Is let needed?
     config.serverIP = server;
@@ -42,13 +49,18 @@ if (await Confirm.prompt("Would you like to modify your selected options?")) {
     await Deno.writeTextFile("config.json", JSON.stringify(config, null, 2));
   }
   
-  console.log("Starting Lunar...");
+  if (lunarPath != lunarPathDefault) {
+    let config = localConfig;
+    config.customLunarPath = lunarPath;
 
-  const lunarCmd = await loadLunarCommand(version, "", `--width ${lunarConfig.resolution.width} --height ${lunarConfig.resolution.height} ${server != "None" ? `--server "${server}"` : ""}`, lunarConfig.launchDirectory);
+    await Deno.writeTextFile("config.json", JSON.stringify(config, null, 2));
+  }
+
+  const lunarCmd = await loadLunarCommand(version, lunarConfig.launchDirectory, lunarPath, "", `--width ${lunarConfig.resolution.width} --height ${lunarConfig.resolution.height} ${server != "None" ? `--server "${server}"` : ""}`);
   await runShell(lunarCmd);
 } else {
   console.log("Starting Lunar...");
 
-  const lunarCmd = await loadLunarCommand(lunarConfig.selectedSubversion, "", `--width ${lunarConfig.resolution.width} --height ${lunarConfig.resolution.height} ${localConfig.serverIP != "None" ? `--server "${localConfig.serverIP}"` : ""}`, lunarConfig.launchDirectory);
+  const lunarCmd = await loadLunarCommand(lunarConfig.selectedSubversion, lunarConfig.launchDirectory, localConfig.customLunarPath ? localConfig.customLunarPath : await joinPath(dir("home"), ".lunarclient"), "", `--width ${lunarConfig.resolution.width} --height ${lunarConfig.resolution.height} ${localConfig.serverIP != "None" ? `--server "${localConfig.serverIP}"` : ""}`);
   await runShell(lunarCmd);
 }

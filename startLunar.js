@@ -1,9 +1,8 @@
 import dir from "https://deno.land/x/dir/mod.ts";
 import { joinPath } from "./libs/join.js";
 
-async function findJRE() {
-  const lunarDir = await joinPath(dir("home"), ".lunarclient", "jre");
-
+async function findJRE(lunarPath) {
+  const lunarDir = await joinPath(lunarPath, "jre");
   for await (const dirEntry of Deno.readDir(lunarDir)) {
     if (!dirEntry.isDirectory) continue;
     const dir = await joinPath(lunarDir, dirEntry.name);
@@ -21,12 +20,11 @@ async function findJRE() {
   }
 }
 
-async function findCopyFiles(version, isIchor) {
+async function findCopyFiles(version, lunarPath, isIchor) {
   const data = [];
 
   const multiverRoot = await joinPath(
-    dir("home"),
-    ".lunarclient",
+    lunarPath,
     "offline",
     "multiver"
   );
@@ -71,13 +69,13 @@ async function findCopyFiles(version, isIchor) {
   return data.join(isIchor ? "," : ";");
 }
 
-export async function loadLunarCommand(version, jreArgs, lunarArgs, rootDir) {
+export async function loadLunarCommand(version, rootDir, lunarDir, jreArgs, lunarArgs) {
+  console.log("version: %s, rootDir: %s, lunarDir: %s", version, rootDir, lunarDir);
   let cmd = "";
-  const jre = await findJRE();
+  const jre = await findJRE(lunarDir);
 
   const nativesDir = await joinPath(
-    dir("home"),
-    ".lunarclient",
+    lunarDir,
     "offline",
     "multiver",
     "natives"
@@ -93,7 +91,8 @@ export async function loadLunarCommand(version, jreArgs, lunarArgs, rootDir) {
   cmd += ` -XX:+DisableAttachMechanism -cp`;
 
   cmd += ` ${await findCopyFiles(
-    version
+    version,
+    lunarDir
   )} com.moonsworth.lunar.genesis.Genesis`;
   cmd += ` --version ${version}`;
   cmd += ` --accessToken 0 --assetIndex ${version} --userProperties {} --gameDir`;
@@ -105,11 +104,10 @@ export async function loadLunarCommand(version, jreArgs, lunarArgs, rootDir) {
       : await joinPath(dir("home"), ".minecraft")
   }`;
   cmd += ` --texturesDir ${await joinPath(
-    dir("home"),
-    ".lunarclient",
+    lunarDir,
     "textures"
   )}`;
-  cmd += ` --ichorClassPath ${await findCopyFiles(version, true)}`;
+  cmd += ` --ichorClassPath ${await findCopyFiles(version, lunarDir, true)}`;
   cmd += ` --ichorExternalFiles OptiFine-${version.split(".")[0]}.${
     version.split(".")[1]
   }.jar`;
