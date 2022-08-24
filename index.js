@@ -22,7 +22,7 @@ if (!existsSync("config.json")) {
 
 const localConfig = JSON.parse(await Deno.readTextFile("config.json"));
 
-if (!await Confirm.prompt("Would you like to use your selected options?")) {
+if (await Confirm.prompt("Would you like to modify your selected options?")) {
   let version, server;
 
   version = await Input.prompt({
