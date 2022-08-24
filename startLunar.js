@@ -23,11 +23,7 @@ async function findJRE(lunarPath) {
 async function findCopyFiles(version, lunarPath, isIchor) {
   const data = [];
 
-  const multiverRoot = await joinPath(
-    lunarPath,
-    "offline",
-    "multiver"
-  );
+  const multiverRoot = await joinPath(lunarPath, "offline", "multiver");
 
   for await (const multiverData of Deno.readDir(multiverRoot)) {
     if (multiverData.isDirectory) continue;
@@ -69,17 +65,23 @@ async function findCopyFiles(version, lunarPath, isIchor) {
   return data.join(isIchor ? "," : ";");
 }
 
-export async function loadLunarCommand(version, rootDir, lunarDir, jreArgs, lunarArgs) {
-  console.log("version: %s, rootDir: %s, lunarDir: %s", version, rootDir, lunarDir);
+export async function loadLunarCommand(
+  version,
+  rootDir,
+  lunarDir,
+  jreArgs,
+  lunarArgs
+) {
+  console.log(
+    "version: %s, rootDir: %s, lunarDir: %s",
+    version,
+    rootDir,
+    lunarDir
+  );
   let cmd = "";
   const jre = await findJRE(lunarDir);
 
-  const nativesDir = await joinPath(
-    lunarDir,
-    "offline",
-    "multiver",
-    "natives"
-  );
+  const nativesDir = await joinPath(lunarDir, "offline", "multiver", "natives");
 
   cmd += `${jre} --add-modules jdk.naming.dns --add-exports jdk.naming.dns/com.sun.jndi.dns=java.naming`;
   cmd += ` -Djna.boot.library.path=${nativesDir}`;
@@ -103,10 +105,7 @@ export async function loadLunarCommand(version, rootDir, lunarDir, jreArgs, luna
       ? await joinPath(dir("home"), "AppData", "Roaming", ".minecraft")
       : await joinPath(dir("home"), ".minecraft")
   }`;
-  cmd += ` --texturesDir ${await joinPath(
-    lunarDir,
-    "textures"
-  )}`;
+  cmd += ` --texturesDir ${await joinPath(lunarDir, "textures")}`;
   cmd += ` --ichorClassPath ${await findCopyFiles(version, lunarDir, true)}`;
   cmd += ` --ichorExternalFiles OptiFine-${version.split(".")[0]}.${
     version.split(".")[1]
