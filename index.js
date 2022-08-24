@@ -13,6 +13,15 @@ if (!existsSync(dir("home"), ".lunarclient", "settings", "launcher.json")) {
 
 const lunarConfig = JSON.parse(await Deno.readTextFile(await joinPath(dir("home"), ".lunarclient", "settings", "launcher.json")));
 
+// FIXME: Reading the file twice is a bit redundant.
+if (!existsSync("config.json")) {
+  await Deno.writeTextFile("config.json", JSON.stringify({
+    serverIP: "None"
+  }, null, 2));
+}
+
+const localConfig = await Deno.readTextFile("config.json");
+
 if (!await Confirm.prompt("Would you like to use your selected options?")) {
   let version, server;
 
@@ -23,8 +32,15 @@ if (!await Confirm.prompt("Would you like to use your selected options?")) {
   
   server = await Input.prompt({
     message: "Input a server IP to join",
-    default: "None"
+    default: localConfig.serverIP
   });
+
+  if (server != localConfig.serverIP) {
+    let config = localConfig; // Is let needed?
+    config.serverIP = server;
+
+    await Deno.writeTextFile("config.json", JSON.stringify(config, null, 2));
+  }
   
   console.log("Starting Lunar...");
 
@@ -33,6 +49,6 @@ if (!await Confirm.prompt("Would you like to use your selected options?")) {
 } else {
   console.log("Starting Lunar...");
 
-  const lunarCmd = await loadLunarCommand(lunarConfig.selectedSubversion, "", `--width ${lunarConfig.resolution.width} --height ${lunarConfig.resolution.height}`, lunarConfig.launchDirectory);
+  const lunarCmd = await loadLunarCommand(lunarConfig.selectedSubversion, "", `--width ${lunarConfig.resolution.width} --height ${lunarConfig.resolution.height} ${localConfig.serverIP != "None" ? `--server "${localConfig.serverIP}"` : ""}`, lunarConfig.launchDirectory);
   await runShell(lunarCmd);
 }
