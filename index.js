@@ -20,7 +20,7 @@ if (!existsSync("config.json")) {
   }, null, 2));
 }
 
-const localConfig = await Deno.readTextFile("config.json");
+const localConfig = JSON.parse(await Deno.readTextFile("config.json"));
 
 if (!await Confirm.prompt("Would you like to use your selected options?")) {
   let version, server;
